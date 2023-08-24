@@ -60,17 +60,38 @@ const Copier = ({ text }) => {
 };
 
 const Editor = () => {
-  const [formData, setFormData] = useState({
-    cluster: "dev",
-    namespace: "",
-    name: "",
-    pemKey: "",
+  const [formData, setFormData] = useState(() => {
+    return {
+      cluster: "dev",
+      namespace: "",
+      name: "",
+      pemKey: "",
+      labels: {
+        component: "Secret",
+        environment: "dv",
+        maintainer: "d09-gitops-sf",
+        "part-of": "deployment-name",
+        version: "v1"
+      }
+    };
   });
   const [encrypted, setEncrypted] = useState(null);
   const [yamlResult, setYamlResult] = useState(null);
   const onSubmit = async (data) => {
     //console.log("onSubmit2", data);
     const validKey = isValidKey(data.pemKey);
+    const labels = {};
+    if (data.labels.match(/^([\w_-\d]+)=(.+)$/im)) {
+      data.labels.split("\n").forEach((row) => {
+        const matches = row.match(/^([\w_-\d]+)=(.*)$/i);
+        if (matches) {
+          labels[matches[1]] = matches[2];
+        }
+      });
+    } else {
+      labels.VALUE = data.labels;
+    }
+    data.labels = labels;
     setFormData(data);
     setEncrypted("");
     setYamlResult("");
@@ -90,6 +111,7 @@ const Editor = () => {
       } else {
         values.VALUE = data.value;
       }
+
       let sealedSecret;
       try {
         sealedSecret = await getSealedSecret({
@@ -124,6 +146,14 @@ const Editor = () => {
             "Not available for multiple values, use the below secret"
           );
         }
+        if (Object.keys(labels).length >= 1) {
+          const topLabels = {
+            ...labels,
+            component: `SealedSecret`
+          };
+          sealedSecret.metadata.labels = topLabels;
+          sealedSecret.spec.template.metadata.labels = labels;
+        }
         setYamlResult(yaml.dump(sealedSecret, { noRefs: true, lineWidth: -1 }));
       }
     }
@@ -145,8 +175,8 @@ const Editor = () => {
                 </Card.Body>
               </Card>
               <Protip />
-              <br/>
-              <br/>
+              <br />
+              <br />
             </>
           )}
         </Col>

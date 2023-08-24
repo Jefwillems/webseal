@@ -20,7 +20,7 @@ const RadioChoice = React.forwardRef(({ name, value, ...props }, ref) => (
 ));
 
 const isValidParamsKey = (key) =>
-  ["namespace", "scope", "cluster", "name", "pemKey"].includes(key);
+  ["namespace", "scope", "cluster", "name", "pemKey", "labels"].includes(key);
 
 const removeInvalidKeys = (keyValidator) => (object) =>
   Object.keys(object)
@@ -44,8 +44,11 @@ export const Form = ({ onSubmit, initialFormData }) => {
 
   const hashParams = keepValidParamKeys(hashParamsData);
 
+  console.log(initialFormData.labels);
+
   const defaultValues = {
     ...initialFormData,
+    labels: Object.keys(initialFormData.labels).map(e => e + "=" + initialFormData.labels[e]).join("\n"),
     ...hashParams,
   };
 
@@ -71,19 +74,20 @@ export const Form = ({ onSubmit, initialFormData }) => {
   //const scope = watch("scope");
   const value = watch("value");
   const pemKey = watch("pemKey");
+  const labels = watch("labels",);
 
   const validKey = isValidKey(pemKey);
 
   React.useEffect(() => {
     const subscription = watch(
       ("value",
-      ({ name, type }) => {
-        const values = getValues();
-        //console.log("value", values, values);
-        // if (isValidKey(values.pemKey)) {
-        _onSubmit(values);
-        // }
-      })
+        ({ name, type }) => {
+          const values = getValues();
+          //console.log("value", values, values);
+          // if (isValidKey(values.pemKey)) {
+          _onSubmit(values);
+          // }
+        })
     );
     return () => subscription.unsubscribe && subscription.unsubscribe();
   }, [watch]);
@@ -170,6 +174,19 @@ export const Form = ({ onSubmit, initialFormData }) => {
                 placeholder="Secret name"
               />
             </Col>
+          </BsForm.Group>
+          <BsForm.Group as={Row}>
+            <BsForm.Label column>Labels :</BsForm.Label>
+            <BsForm.Control
+              as="textarea"
+              name="labels"
+              id="labels"
+              style={{ marginTop: 10 }}
+              rows={4}
+              {...register("labels", { required: true, labels })}
+              placeholder={`somelabel=1234
+otherlabel=12345`}
+            />
           </BsForm.Group>
         </Card.Body>
       </Card>

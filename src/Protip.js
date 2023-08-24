@@ -25,8 +25,8 @@ const tips = [
 ];
 
 export const Protip = () => {
-  return tips.map((tip) => (
-    <Card style={{ marginTop: 10 }}>
+  return tips.map((tip,i) => (
+    <Card key={i} style={{ marginTop: 10 }}>
       <Card.Body>
         <h5>{tip.title}</h5>
         {tip.description}
