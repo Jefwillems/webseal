@@ -1,0 +1,3 @@
+[submodule "webseal/webseal"]
+	path = webseal/webseal
+	url = git@github.com:Jefwillems/webseal.git
